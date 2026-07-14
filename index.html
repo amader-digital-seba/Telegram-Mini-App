@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sujon Services - Premium</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            color: white;
+            padding: 15px;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .premium-badge {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: black;
+            padding: 6px 18px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 13px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .service-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .service-card:active { transform: scale(0.95); }
+        
+        .service-icon { font-size: 30px; margin-bottom: 8px; }
+        
+        .service-name {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .service-price {
+            background: linear-gradient(45deg, #f09433, #e6683c);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .service-time { font-size: 10px; color: #aaa; margin-top: 6px; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            color: #aaa;
+            font-size: 11px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-confirm { background: linear-gradient(45deg, #f09433, #e6683c); color: white; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+        .btn-back { background: #4CAF50; color: white; margin-top: 10px; }
+        
+        .success-animation { text-align: center; padding: 30px; }
+        .success-animation h1 { color: #4CAF50; font-size: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <h1>🔥 SUJON SERVICES</h1>
+            <p style="color:#ccc;font-size:13px;">বিশ্বস্ত সেবা, দ্রুত ডেলিভারি</p>
+            <span class="premium-badge">👑 PREMIUM</span>
+        </div>
+        
+        <div class="service-grid" id="serviceGrid"></div>
+        
+        <div class="footer">
+            <p>⭐ ৪.৯/৫ রেটিং | ১০০০০+ অর্ডার</p>
+            <p>💳 BKash | Nagad | Rocket</p>
+        </div>
+    </div>
+    
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <div id="modalInputs"></div>
+            <button class="btn btn-confirm" onclick="submitOrder()">✅ অর্ডার কনফার্ম</button>
+            <button class="btn btn-cancel" onclick="closeModal()">❌ বাতিল</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        
+        const services = {
+            's1': { name: 'NID কার্ড PDF', price: '180', time: '10-20 মিনিট', icon: '🪪', inputs: ['আপনার নাম', 'NID নম্বর', 'জন্ম তারিখ (dd-mm-yyyy)'] },
+            's2': { name: 'স্মার্ট কার্ড PDF', price: '350', time: '30 মিনিট', icon: '💳', inputs: ['আপনার নাম', 'NID নম্বর', 'জন্ম তারিখ'] },
+            's3': { name: 'সার্ভার কপি', price: '120', time: '10-20 মিনিট', icon: '🖥️', inputs: ['আপনার নাম', 'NID নম্বর', 'জন্ম তারিখ'] },
+            's4': { name: 'হারানো এনআইডি', price: '1200', time: '1-2 ঘণ্টা', icon: '🔍', inputs: ['নাম', 'পিতার নাম', 'মাতার নাম', 'ভোটারের ঠিকানা'] },
+            's5': { name: 'Nid সংশোধন কপি', price: '200', time: '10-20 মিনিট', icon: '✏️', inputs: ['NID নম্বর', 'জন্ম তারিখ'] },
+            's6': { name: 'Passport SB Copy', price: '1400', time: 'অফিস টাইমে', icon: '🛂', inputs: ['নাম', 'Passport No/Nid No'] },
+            's7': { name: 'ই-টিন সার্টিফিকেট', price: '200', time: '10-20 মিনিট', icon: '📄', inputs: ['নাম', 'e-Tin No/Nid No'] },
+            's8': { name: 'নম্বর টু লোকেশন', price: '800', time: '20-30 মিনিট', icon: '📍', inputs: ['মোবাইল নাম্বার'] },
+            's9': { name: 'সিম মালিকানা তথ্য', price: '600', time: '20-30 মিনিট', icon: '📱', inputs: ['সিম নম্বর'] }
+        };
+        
+        let selectedService = null;
+        const grid = document.getElementById('serviceGrid');
+        
+        Object.entries(services).forEach(([id, service]) => {
+            const card = document.createElement('div');
+            card.className = 'service-card';
+            card.innerHTML = `
+                <div class="service-icon">${service.icon}</div>
+                <div class="service-name">${service.name}</div>
+                <div class="service-price">💰 ${service.price} টাকা</div>
+                <div class="service-time">⏱️ ${service.time}</div>
+            `;
+            card.onclick = () => openOrderModal(id, service);
+            grid.appendChild(card);
+        });
+        
+        function openOrderModal(id, service) {
+            selectedService = {id, ...service};
+            
+            document.getElementById('modalTitle').innerHTML = `
+                ${service.icon} ${service.name}<br>
+                <small style="color:#f09433;font-size:13px;">💰 ${service.price} টাকা | ⏱️ ${service.time}</small>
+            `;
+            
+            const inputsDiv = document.getElementById('modalInputs');
+            inputsDiv.innerHTML = '';
+            
+            service.inputs.forEach((placeholder, index) => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = '✍️ ' + placeholder;
+                input.id = `input_${index}`;
+                inputsDiv.appendChild(input);
+            });
+            
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+        
+        function submitOrder() {
+            const answers = [];
+            let valid = true;
+            
+            selectedService.inputs.forEach((_, index) => {
+                const input = document.getElementById(`input_${index}`);
+                if (input.value.trim() === '') {
+                    valid = false;
+                    input.style.border = '2px solid red';
+                } else {
+                    input.style.border = '1px solid rgba(255,255,255,0.3)';
+                    answers.push(input.value.trim());
+                }
+            });
+            
+            if (!valid) {
+                tg.showPopup({
+                    title: '⚠️ সতর্কতা',
+                    message: 'দয়া করে সকল তথ্য পূরণ করুন!',
+                    buttons: [{type: 'ok'}]
+                });
+                return;
+            }
+            
+            const data = JSON.stringify({
+                action: 'order',
+                service_id: selectedService.id,
+                answers: answers,
+                timestamp: new Date().toISOString()
+            });
+            
+            tg.sendData(data);
+            
+            closeModal();
+            
+            document.getElementById('mainContainer').innerHTML = `
+                <div class="header success-animation">
+                    <h1>✅</h1>
+                    <h2 style="color:#4CAF50;margin:15px 0;">অর্ডার সফল!</h2>
+                    <p style="color:#ccc;font-size:15px;">
+                        📦 ${selectedService.name}<br>
+                        💰 ${selectedService.price} টাকা
+                    </p>
+                    <p style="color:#aaa;font-size:13px;margin-top:15px;">
+                        বট থেকে কনফার্মেশন মেসেজ আসছে...
+                    </p>
+                    <button class="btn btn-back" onclick="tg.close()">
+                        🔙 বটে ফিরে যান
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
